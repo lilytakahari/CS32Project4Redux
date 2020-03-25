@@ -8,7 +8,10 @@ unsigned int hasher(const GeoCoord& g)
 {
     return (unsigned int)std::hash<std::string>()(g.latitudeText + g.longitudeText);
 }
-
+unsigned int hasher(const string& g)
+{
+    return (unsigned int)std::hash<std::string>()(g);
+}
 class StreetMapImpl
 {
 public:
