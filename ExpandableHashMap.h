@@ -15,6 +15,7 @@
 #define EXHASHMAP_INCLUDED
 
 #include <list>
+#include <vector>
 #include <iostream>
 
 const int initialBucketNum = 8;
@@ -63,6 +64,9 @@ public:
 		return const_cast<ValueType*>(const_cast<const ExpandableHashMap*>(this)->find(key));
 	}
 
+    // REMOVE THIS LATER: IT IS FOR TESTING PURPOSES
+    std::list<MapNode<KeyType, ValueType>*>* giveContents();
+    
 	  // C++11 syntax for preventing copying and assignment
 	ExpandableHashMap(const ExpandableHashMap&) = delete;
 	ExpandableHashMap& operator=(const ExpandableHashMap&) = delete;
@@ -82,6 +86,12 @@ private:
 };
 
 // BEGIN MY CODE, THE IMPLEMENTATION OF ABOVE SPECIFIED INTERFACE
+
+template<typename KeyType, typename ValueType>
+std::list<MapNode<KeyType, ValueType>*>* ExpandableHashMap<KeyType, ValueType>::giveContents()
+{
+    return &m_items;
+}
 template<typename KeyType, typename ValueType>
 ExpandableHashMap<KeyType, ValueType>::ExpandableHashMap(double maximumLoadFactor)
 {
@@ -96,9 +106,6 @@ template<typename KeyType, typename ValueType>
 ExpandableHashMap<KeyType, ValueType>::~ExpandableHashMap()
 {
     reset();
-//    for (auto& it : m_map)          // I'm not sure if clearing empty lists is necessary
-//        it.clear();                 // but I'm doing it anyways!!!!
-    m_map.clear();
 }
 
 template<typename KeyType, typename ValueType>
@@ -108,10 +115,6 @@ void ExpandableHashMap<KeyType, ValueType>::reset()
     for (auto& it : m_items)
         delete it;
     m_items.clear();
-    
-    // clear each bucket
-//    for (auto& it : m_map)
-//        it.clear();
     m_map.clear();      // clear the map vector
     
     // reset member variables
@@ -160,9 +163,6 @@ template<typename KeyType, typename ValueType>
 void ExpandableHashMap<KeyType, ValueType>::rehash()
 {
     unsigned int hasher(const KeyType& k);
-    // clear each bucket
-//    for (auto& it : m_map)
-//        it.clear();
     m_map.clear();      // clear the map vector
     // set new number of buckets
     m_totalBuckets = m_totalBuckets * expandingFactor;
