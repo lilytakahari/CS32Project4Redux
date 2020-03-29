@@ -166,7 +166,7 @@ DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
             }
         }
     }
-    
+    return NO_ROUTE;
 //    unordered_set<string> visited;  // keeps track of visited nodes
 //    my_pqueue fringe ((GreaterNode(end)));
 //    string startStr = start.latitudeText + ", " + start.longitudeText;
@@ -210,7 +210,6 @@ DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
 //            }
 //        }
 //    }
-    return NO_ROUTE;
 }
 
 //******************** PointToPointRouter functions ***************************

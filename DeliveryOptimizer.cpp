@@ -28,8 +28,17 @@ void DeliveryOptimizerImpl::optimizeDeliveryOrder(
     double& oldCrowDistance,
     double& newCrowDistance) const
 {
-    oldCrowDistance = 0;  // Delete these lines and implement this function correctly
-    newCrowDistance = 0;
+    oldCrowDistance = 0;
+    GeoCoord prevCoord = depot;
+    GeoCoord currCoord;
+    for (auto& it : deliveries)
+    {
+        currCoord = it.location;
+        oldCrowDistance += distanceEarthMiles(prevCoord, currCoord);
+        prevCoord = currCoord;
+    }
+    // TODO: Implement greedy algorithm Nearest Neighbor
+    newCrowDistance = oldCrowDistance;
 }
 
 //******************** DeliveryOptimizer functions ****************************
