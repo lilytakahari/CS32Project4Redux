@@ -8,23 +8,19 @@ using namespace std;
 #include <queue>
 #include <vector>
 
-//struct MapSearchNode
-//{
-//    MapSearchNode(GeoCoord xy, double dist):coord(xy), distTraveled(dist) {}
-//
-//    GeoCoord coord;             // identifying coord
-//    list<StreetSegment> path;   // the path from the start of search problem to get to this coord
-//    double distTraveled;        // the distance traveled on the above path
-//};
+// MapSearchNode: wrapper container to facilitate A* search
 struct MapSearchNode
 {
     MapSearchNode(string strCoord, GeoCoord xy, double* f)
                   :id(strCoord), coord(xy), fScore(f){}
-    string id;
-    GeoCoord coord;
-    double* fScore;
+    
+    string id;          // latitudeText + ", " longitudeText
+    GeoCoord coord;     // the actual GeoCoord struct
+    double* fScore;     // pointer to an fScore stored in a map
 };
 
+// GreaterNode: a functor for use with priority_queue
+// so that priority_queue can order the custom-made MapSearchNode
 class GreaterNode
 {
 public:
@@ -33,22 +29,7 @@ public:
         return *(lhs.fScore) > *(rhs.fScore);
     }
 };
-
-//class GreaterNode
-//{
-//public:
-//    GreaterNode(GeoCoord dest) {m_dest = dest;}
-//    bool operator() (MapSearchNode& lhs, const MapSearchNode& rhs)
-//    {
-//        double lCost = lhs.distTraveled + distanceEarthMiles(lhs.coord, m_dest);
-//        double rCost = rhs.distTraveled + distanceEarthMiles(rhs.coord, m_dest);
-//        return lCost > rCost;
-//    }
-//private:
-//    GeoCoord m_dest;
-//};
 // End my code
-
 
 class PointToPointRouterImpl
 {
@@ -67,26 +48,25 @@ private:
 };
 
 // BEGIN MY CODE, THE IMPLEMENTATION OF ABOVE SPECIFIED INTERFACE
-// greaterNode: A* heuristic function, which is
+
+// constructor: initializes StreetMap pointer
 PointToPointRouterImpl::PointToPointRouterImpl(const StreetMap* sm)
-{
-    m_streets = sm;
-}
+: m_streets(sm){}
 
-PointToPointRouterImpl::~PointToPointRouterImpl()
-{
-}
+// destructor
+PointToPointRouterImpl::~PointToPointRouterImpl(){}
 
+// generatePointToPointRoute: generates an optimal route distance-wise
+// (if the A* works correctly) from one GeoCoord to another
+// based on the StreetMap given
 DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
         const GeoCoord& start,
         const GeoCoord& end,
         list<StreetSegment>& route,
         double& totalDistanceTravelled) const
 
-/* So I know that this function is intended to run in O(N).
- * But in the worst case it is at least O(NlogN), maybe worse
- * The commented out code implemented in the style of my earlier work in Python searches
- * But perhaps I should try Wikipedia's approach, which uses lots of maps so it should be O(N).
+/* This functions uses A* search based on the Wikipedia's approach
+ * which uses lots of hash maps and thus should be O(N).
  */
 {
     route.clear();
@@ -167,7 +147,47 @@ DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
         }
     }
     return NO_ROUTE;
+}
+
+// END MY IMPLEMENTATION
+
+
+// Here, below, lies my 1st attempt at implementing A*, based on my previous experience
+// implementing it in Python. If I were to uncomment it, I'm not even sure it would work
+// because I did not test it. Also, I definitely messed it up as I re-wrote it into the above.
+
+//struct MapSearchNode
+//{
+//    MapSearchNode(GeoCoord xy, double dist):coord(xy), distTraveled(dist) {}
+//
+//    GeoCoord coord;             // identifying coord
+//    list<StreetSegment> path;   // the path from the start of search problem to get to this coord
+//    double distTraveled;        // the distance traveled on the above path
+//};
+
+//class GreaterNode
+//{
+//public:
+//    GreaterNode(GeoCoord dest) {m_dest = dest;}
+//    bool operator() (MapSearchNode& lhs, const MapSearchNode& rhs)
+//    {
+//        double lCost = lhs.distTraveled + distanceEarthMiles(lhs.coord, m_dest);
+//        double rCost = rhs.distTraveled + distanceEarthMiles(rhs.coord, m_dest);
+//        return lCost > rCost;
+//    }
+//private:
+//    GeoCoord m_dest;
+//};
+
+//DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
+//                    const GeoCoord& start,
+//                    const GeoCoord& end,
+//                    list<StreetSegment>& route,
+//                    double& totalDistanceTravelled) const
+// // This function does not use a lot of maps and is thus sadder than Wikipedia's approach.
+//{
 //    unordered_set<string> visited;  // keeps track of visited nodes
+//    typedef priority_queue<MapSearchNode, vector<MapSearchNode>, GreaterNode> my_pqueue;
 //    my_pqueue fringe ((GreaterNode(end)));
 //    string startStr = start.latitudeText + ", " + start.longitudeText;
 //    MapSearchNode startNode(start, 0);
@@ -210,7 +230,8 @@ DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
 //            }
 //        }
 //    }
-}
+//    return NO_ROUTE;
+//}
 
 //******************** PointToPointRouter functions ***************************
 

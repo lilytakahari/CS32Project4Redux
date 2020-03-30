@@ -27,8 +27,8 @@ struct MapNode
     KeyType key;
     ValueType value;
 };
-
 // End my code
+
 template<typename KeyType, typename ValueType>
 class ExpandableHashMap
 {
@@ -63,10 +63,6 @@ public:
 	{
 		return const_cast<ValueType*>(const_cast<const ExpandableHashMap*>(this)->find(key));
 	}
-
-    // REMOVE THIS LATER: IT IS FOR TESTING PURPOSES
-    std::list<MapNode<KeyType, ValueType>*>* giveContents();
-    
 	  // C++11 syntax for preventing copying and assignment
 	ExpandableHashMap(const ExpandableHashMap&) = delete;
 	ExpandableHashMap& operator=(const ExpandableHashMap&) = delete;
@@ -87,27 +83,25 @@ private:
 
 // BEGIN MY CODE, THE IMPLEMENTATION OF ABOVE SPECIFIED INTERFACE
 
-template<typename KeyType, typename ValueType>
-std::list<MapNode<KeyType, ValueType>*>* ExpandableHashMap<KeyType, ValueType>::giveContents()
-{
-    return &m_items;
-}
+// constructor: initializes the map
 template<typename KeyType, typename ValueType>
 ExpandableHashMap<KeyType, ValueType>::ExpandableHashMap(double maximumLoadFactor)
 {
-    // just initializing values to member variables
+    // initializing member variables with values
     m_maxLoadFactor = maximumLoadFactor;
     m_totalBuckets = initialBucketNum;
     m_size = 0;
     m_map.resize(m_totalBuckets);   // vector has this cool function
 }
 
+// destructor: Calls reset, which deletes the dynamically allocated objects
 template<typename KeyType, typename ValueType>
 ExpandableHashMap<KeyType, ValueType>::~ExpandableHashMap()
 {
     reset();
 }
 
+// reset: Deletes all items in the map, returns bucket num to default starting num
 template<typename KeyType, typename ValueType>
 void ExpandableHashMap<KeyType, ValueType>::reset()
 {
@@ -123,12 +117,15 @@ void ExpandableHashMap<KeyType, ValueType>::reset()
     m_map.resize(m_totalBuckets);
 }
 
+// size: Returns the size of the map
 template<typename KeyType, typename ValueType>
 int ExpandableHashMap<KeyType, ValueType>::size() const
 {
     return m_size;
 }
 
+// associate: Either inserts a new association or rewrites a previous association
+// of a key to its value
 template<typename KeyType, typename ValueType>
 void ExpandableHashMap<KeyType, ValueType>::associate(const KeyType& key, const ValueType& value)
 {
@@ -159,6 +156,7 @@ void ExpandableHashMap<KeyType, ValueType>::associate(const KeyType& key, const 
     }
 }
 
+// rehash: Increases number of map buckets and rehashes items
 template<typename KeyType, typename ValueType>
 void ExpandableHashMap<KeyType, ValueType>::rehash()
 {
@@ -176,6 +174,8 @@ void ExpandableHashMap<KeyType, ValueType>::rehash()
     }
 }
 
+// find: If no association exists with the given key, return nullptr;
+// otherwise, return a pointer to the value associated with that key.
 template<typename KeyType, typename ValueType>
 const ValueType* ExpandableHashMap<KeyType, ValueType>::find(const KeyType& key) const
 {
