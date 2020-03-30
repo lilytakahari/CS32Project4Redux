@@ -2,6 +2,35 @@
 #include <list>
 using namespace std;
 
+// Start my code
+#include <unordered_set>
+#include <unordered_map>
+#include <queue>
+#include <vector>
+
+// MapSearchNode: wrapper container to facilitate A* search
+struct MapSearchNode
+{
+    MapSearchNode(string strCoord, GeoCoord xy, double* f)
+                  :id(strCoord), coord(xy), fScore(f){}
+    
+    string id;          // latitudeText + ", " longitudeText
+    GeoCoord coord;     // the actual GeoCoord struct
+    double* fScore;     // pointer to an fScore stored in a map
+};
+
+// GreaterNode: a functor for use with priority_queue
+// so that priority_queue can order the custom-made MapSearchNode
+class GreaterNode
+{
+public:
+    bool operator() (MapSearchNode& lhs, const MapSearchNode& rhs)
+    {
+        return *(lhs.fScore) > *(rhs.fScore);
+    }
+};
+// End my code
+
 class PointToPointRouterImpl
 {
 public:
@@ -12,24 +41,197 @@ public:
         const GeoCoord& end,
         list<StreetSegment>& route,
         double& totalDistanceTravelled) const;
+// Start my code
+private:
+    const StreetMap* m_streets;
+// End my code
 };
 
+// BEGIN MY CODE, THE IMPLEMENTATION OF ABOVE SPECIFIED INTERFACE
+
+// constructor: initializes StreetMap pointer
 PointToPointRouterImpl::PointToPointRouterImpl(const StreetMap* sm)
-{
-}
+: m_streets(sm){}
 
-PointToPointRouterImpl::~PointToPointRouterImpl()
-{
-}
+// destructor
+PointToPointRouterImpl::~PointToPointRouterImpl(){}
 
+// generatePointToPointRoute: generates an optimal route distance-wise
+// (if the A* works correctly) from one GeoCoord to another
+// based on the StreetMap given
 DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
         const GeoCoord& start,
         const GeoCoord& end,
         list<StreetSegment>& route,
         double& totalDistanceTravelled) const
+
+/* This functions uses A* search based on the Wikipedia's approach
+ * which uses lots of hash maps and thus should be O(N).
+ */
 {
-    return NO_ROUTE;  // Delete this line and implement this function correctly
+    route.clear();
+    totalDistanceTravelled = 0;
+    if (start == end)
+        return DELIVERY_SUCCESS;
+    vector<StreetSegment> successors;
+    if (!(m_streets->getSegmentsThatStartWith(end, successors)))
+        return BAD_COORD;
+    if (!(m_streets->getSegmentsThatStartWith(start, successors)))
+        return BAD_COORD;
+    
+    // The set of discovered nodes that may need to be (re-)expanded.
+    unordered_set<string> openSet;
+    typedef priority_queue<MapSearchNode, vector<MapSearchNode>, GreaterNode> my_pqueue;
+    // The accompanying priority queue for openSet
+    my_pqueue openSet_priority;
+    string startStr = start.latitudeText + ", " + start.longitudeText;
+    openSet.insert(startStr);
+    
+    // For node n, cameFrom[n] is the StreetSegment we had to take to get from
+    // start: previous node; end: n
+    unordered_map<string, StreetSegment> cameFrom;
+    
+    // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
+    unordered_map<string, double> gScore;
+    gScore[startStr] = 0.0;
+    
+    // For node n, fScore[n] := gScore[n] + h(n).
+    // where h(n) is heuristic(n) and our heuristic is the crow's distance to the end.
+    unordered_map<string, double> fScore;
+    fScore[startStr] = distanceEarthMiles(start, end);
+    
+    openSet_priority.push(MapSearchNode(startStr, start, &(fScore[startStr])));
+    
+    while (!openSet_priority.empty())
+    {
+        MapSearchNode currNode = openSet_priority.top();
+        openSet_priority.pop();
+        openSet.erase(currNode.id);
+        
+        if (currNode.coord == end)
+        {
+            totalDistanceTravelled = gScore[currNode.id];
+            
+            // Reconstruct route.
+            StreetSegment fromSeg;
+            string cameFromStr = end.latitudeText + ", " + end.longitudeText;
+            do
+            {
+                fromSeg = cameFrom[cameFromStr];
+                route.push_front(fromSeg);
+                cameFromStr = fromSeg.start.latitudeText + ", " + fromSeg.start.longitudeText;
+            } while (cameFrom.find(cameFromStr) != cameFrom.end());
+            
+            return DELIVERY_SUCCESS;
+        }
+        
+        m_streets->getSegmentsThatStartWith(currNode.coord, successors);
+        for (auto& seg : successors)
+        {
+            double tentative_gScore = gScore[currNode.id] + distanceEarthMiles(currNode.coord, seg.end);
+            string endStr = seg.end.latitudeText + ", " + seg.end.longitudeText;
+            
+            if ( (gScore.find(endStr) == gScore.end()) || tentative_gScore < gScore[endStr])
+            {
+                // This path to neighbor is better than any previous one. Record it!
+                cameFrom[endStr] = seg;
+                gScore[endStr] = tentative_gScore;
+                fScore[endStr] = tentative_gScore + distanceEarthMiles(seg.end, end);
+                
+                // if neighbor not in openSet
+                if (openSet.find(endStr) == openSet.end()) {
+                    openSet.insert(endStr);
+                    openSet_priority.push(MapSearchNode(endStr, seg.end, &(fScore[endStr])));
+                }
+            }
+        }
+    }
+    return NO_ROUTE;
 }
+
+// END MY IMPLEMENTATION
+
+
+// Here, below, lies my 1st attempt at implementing A*, based on my previous experience
+// implementing it in Python. If I were to uncomment it, I'm not even sure it would work
+// because I did not test it. Also, I definitely messed it up as I re-wrote it into the above.
+
+//struct MapSearchNode
+//{
+//    MapSearchNode(GeoCoord xy, double dist):coord(xy), distTraveled(dist) {}
+//
+//    GeoCoord coord;             // identifying coord
+//    list<StreetSegment> path;   // the path from the start of search problem to get to this coord
+//    double distTraveled;        // the distance traveled on the above path
+//};
+
+//class GreaterNode
+//{
+//public:
+//    GreaterNode(GeoCoord dest) {m_dest = dest;}
+//    bool operator() (MapSearchNode& lhs, const MapSearchNode& rhs)
+//    {
+//        double lCost = lhs.distTraveled + distanceEarthMiles(lhs.coord, m_dest);
+//        double rCost = rhs.distTraveled + distanceEarthMiles(rhs.coord, m_dest);
+//        return lCost > rCost;
+//    }
+//private:
+//    GeoCoord m_dest;
+//};
+
+//DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
+//                    const GeoCoord& start,
+//                    const GeoCoord& end,
+//                    list<StreetSegment>& route,
+//                    double& totalDistanceTravelled) const
+// // This function does not use a lot of maps and is thus sadder than Wikipedia's approach.
+//{
+//    unordered_set<string> visited;  // keeps track of visited nodes
+//    typedef priority_queue<MapSearchNode, vector<MapSearchNode>, GreaterNode> my_pqueue;
+//    my_pqueue fringe ((GreaterNode(end)));
+//    string startStr = start.latitudeText + ", " + start.longitudeText;
+//    MapSearchNode startNode(start, 0);
+//    fringe.push(startNode);
+//
+//    // loop until no more nodes left to expand, or goal reached
+//    while (!fringe.empty())
+//    {
+//        MapSearchNode currNode = fringe.top();
+//        fringe.pop();
+//        GeoCoord currGC = currNode.coord;
+//        string currCoord = currGC.latitudeText + ", " + currGC.longitudeText;
+//
+//        // only look at node's successors if node has not been expanded yet
+//        if (visited.find(currCoord) != visited.end())
+//        {
+//            visited.insert(currCoord);
+//            if (currGC == end)      // return if the node is the goal
+//            {
+//                route = currNode.path;
+//                totalDistanceTravelled = currNode.distTraveled;
+//                return DELIVERY_SUCCESS;
+//            }
+//
+//            // otherwise, add unexpanded nodes to visit in the next loop
+//            m_streets->getSegmentsThatStartWith(currGC, successors);
+//            for (auto& it : successors)
+//            {
+//                // 1. Find the successor GeoCoords through these segments
+//                // 2. Create MapSearchNodes for these GeoCoords
+//                // 3. Add the path to the nodes
+//                // 4. Add the cost to the nodes
+//                // 5. Push the nodes to fringe
+//                GeoCoord toAddGC = it.end;
+//                double toAddCost = distanceEarthMiles(it.start, it.end);
+//                MapSearchNode toAddNode(toAddGC, currNode.distTraveled + toAddCost);
+//                toAddNode.path = currNode.path;
+//                currNode.path.push_back(it);
+//                fringe.push(toAddNode);
+//            }
+//        }
+//    }
+//    return NO_ROUTE;
+//}
 
 //******************** PointToPointRouter functions ***************************
 
