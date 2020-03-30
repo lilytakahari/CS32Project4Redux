@@ -2,7 +2,7 @@
 
 Oh UCLA student! In these trying times of quarantine, why not have your food delivered by robot?
 
-This program takes as input real street data of Westwood, CA in `mapdata.txt` (derived and simplified from OpenStreetMap data) and `deliveries.txt`, a formatted list of food to deliver at certain locations. It then finds the optimally shortest routes between locations by using A* search, and attempts to optimize the delivery version of the Traveling Salesman Problem with the greedy Nearest Neighbor algorithm. By storing the street map data in a custom implemented hash map, this program operates quickly, so those De Neve Late Night chicken tendies can practicually jump into your tummy.
+This program takes as input real street data of Westwood, CA in `mapdata.txt` (derived and simplified from OpenStreetMap data) and `deliveries.txt`, a formatted list of food to deliver at certain locations. It then finds the optimally shortest routes between locations by using A* search, and attempts to optimize the delivery version of the Traveling Salesman Problem with the greedy Nearest Neighbor algorithm. By storing the street map data in a custom implemented hash map, this program operates quickly, so those De Neve Late Night chicken tendies can practically jump into your tummy.
 
 My implementation of what was required in the spec is contained in the `ExpandableHashMap.h, StreetMap.cpp, PointToPointRouter.cpp, DeliveryOptimizer.cpp`, and `DeliveryPlanner.cpp` files.
 
