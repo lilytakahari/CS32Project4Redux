@@ -1,6 +1,6 @@
-##QuarantEats
+## QuarantEats
 
-implementation of UCLA CS 32 Winter 2020 Project 4 (GooberEats)
+(An implementation of UCLA CS 32 Winter 2020 Project 4: GooberEats)
 
 Oh UCLA student! In these trying times of quarantine, why not have your food delivered by robot?
 
