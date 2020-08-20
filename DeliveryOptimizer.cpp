@@ -19,7 +19,7 @@ DeliveryOptimizerImpl::~DeliveryOptimizerImpl(){}
 
 // optimizeDeliveryOrder: given the deliveries, try to lessen the distance
 // needed to travel from the depot, to all these locations once, then
-// bvack to the depot, by reordering the deliveries
+// back to the depot, by reordering the deliveries
 void DeliveryOptimizerImpl::optimizeDeliveryOrder(
     const GeoCoord& depot,
     vector<DeliveryRequest>& deliveries,
