@@ -65,9 +65,7 @@ DeliveryResult PointToPointRouterImpl::generatePointToPointRoute(
         list<StreetSegment>& route,
         double& totalDistanceTravelled) const
 
-/* This functions uses A* search based on the Wikipedia's approach
- * which uses lots of hash maps and thus should be O(N).
- */
+// This function uses A* search based on the Wikipedia's approach
 {
     route.clear();
     totalDistanceTravelled = 0;
